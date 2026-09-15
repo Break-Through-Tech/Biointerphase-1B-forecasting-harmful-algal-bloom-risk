@@ -10,11 +10,11 @@
 
 | Name             | GitHub Handle | Contribution                                                             |
 |------------------|---------------|--------------------------------------------------------------------------|
-| Taylor Nguyen    | @taylornguyen | Data exploration, visualization, overall project coordination            |
-| Jordan Ramirez   | @jramirez     | Data collection, exploratory data analysis (EDA), dataset documentation  |
-| Amina Hassan     | @aminahassan  | Data preprocessing, feature engineering, data validation                 |
-| Priya Mehta      | @pmehta       | Model selection, hyperparameter tuning, model training and optimization  |
-| Chris Park       | @chrispark    | Model evaluation, performance analysis, results interpretation           |
+| Anish KC    | @mhosigiri | Data exploration, visualization, overall project coordination            |
+| Laura Williams   | @laura-williams-1     | Data collection, exploratory data analysis (EDA), dataset documentation  |
+| Jerica Yuan     | @  | Data preprocessing, feature engineering, data validation                 |
+| Shreya R      | @       | Model selection, hyperparameter tuning, model training and optimization  |
+| Mohammed C       | @    | Model evaluation, performance analysis, results interpretation           |
 
 ---
 
