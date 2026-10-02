@@ -1,1 +1,34 @@
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
 
+# Python and notebook caches
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local Python environments and secrets
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Generated data from the notebooks
+/processed/
+/data/processed/
+*.parquet
+
+# Local logs and test reports
+*.log
+.coverage
+htmlcov/
