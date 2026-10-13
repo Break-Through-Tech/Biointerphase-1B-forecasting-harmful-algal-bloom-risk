@@ -8,11 +8,14 @@ xarray>=2024.1
 netCDF4>=1.6
 scipy>=1.11
 
-# Reading and writing the cleaned .parquet files (notebooks 02, 03 and 04)
+# Reading and writing the cleaned .parquet files (notebooks 02, 03, 04 and 05)
 pyarrow>=15.0
 
 # Saving tables as Markdown with DataFrame.to_markdown (notebooks 01 and 03)
 tabulate>=0.9
+
+# Plot styling (notebook 05)
+seaborn>=0.13
 
 # Running the notebooks locally in VS Code or Jupyter
 ipykernel>=6.29
