@@ -13,8 +13,9 @@
 ## Project Highlights
 
 - Audited eight environmental data sources and compared three satellite chlorophyll products.
-- Cleaned the sources and built a weekly Sarasota modeling table: **366 rows, 47 columns**.
-- Defined a next-week red tide risk label from NOAA *Karenia brevis* cell counts. **244 weeks** have labels in the planned training, validation, and test splits.
+- Built two modelling tables from 2015 to May 2026: a **regional weekly table** (595 weeks, 486 labelled) and a **site-week table** (21,718 rows, 16,037 labelled, 136 sampling sites).
+- Defined a next-week red tide risk label from NOAA *Karenia brevis* cell counts on the Anna Maria Island to Boca Grande coast, with 5,000 / 100,000 cells/L class cutoffs.
+- Tested which features improve forecasts on unseen years: bloom history and duration plus season form the core set; environmental features are candidates to test.
 
 ## Project Overview
 
@@ -22,12 +23,16 @@ This Biointerphase project, part of Break Through Tech AI Studio, aims to foreca
 
 ## Data Exploration
 
-We combined NOAA HABSOS cell counts with Sarasota Water Atlas measurements, Bradenton and KSRQ weather, offshore wind, Mote water temperature, and satellite chlorophyll. Cyanotoxin measurements are optional context; they do not define the red tide outcome.
+We combined NOAA HABSOS cell counts with Sarasota Water Atlas measurements, Bradenton and KSRQ weather, offshore wind, Mote water temperature, and satellite chlorophyll. Cyanotoxin measurements are optional context; they do not define the red tide outcome. The CHIRPS precipitation file is not used: its dates are wrong after June 2016 (see notebook 02, section 8).
 
 1. [Data understanding](notebooks/01_data_understanding.ipynb): checked coverage, missing values, units, outliers, and duplicates.
 2. [Data processing](notebooks/02_data_processing.ipynb): cleaned each source and saved it as Parquet.
-3. [Model table](notebooks/03_model_table.ipynb): joined the sources by week and set the label to the highest HABSOS class observed the following week.
+3. [Model tables](notebooks/03_model_table.ipynb): built the regional weekly and site-week tables, the next-week labels and the split.
+4. [Exploratory data analysis](notebooks/04_exploratory_data_analysis.ipynb): EDA on the first (September) version of the weekly table.
+5. [Feature engineering](notebooks/05_feature_engineering.ipynb): HAB history, duration, seasonal and temperature features, redundancy check, and the feature lists in `feature_sets.json`.
 
-The provisional classes are **0: below 10,000**, **1: 10,000–99,999**, and **2: at least 100,000 cells/L**. A week without a following-week sample has no label. HABSOS sampling is sparse in 2022–2023, so those weeks are excluded from the planned model splits.
+The classes are **0: below 5,000**, **1: 5,000–99,999**, and **2: at least 100,000 cells/L** (FWC shellfish-closure and satellite-visible bloom levels); `y_class_10k` keeps the earlier 10,000 cutoff. A week without a following-week sample has no label. The `split` column is set by the forecast week: train up to 2023, validate 2024, test 2025, holdout 2026. Column definitions are in `data/docs/data_dictionary.md`.
 
-The notebooks run in Google Colab. They read raw files from `/content/drive/MyDrive/biointerphase_data/` and save cleaned files and the weekly table in its `processed/` folder. Raw inputs are also in [`data/`](data/).
+### Running the notebooks
+
+Run 02, 03 and 05 in order. In Google Colab they read the raw files from `/content/drive/MyDrive/biointerphase_data/` (copy `data/water_atlas_stations.csv` there too). Locally they read [`data/`](data/) and write to `data/processed/` (not tracked by git). Install the packages with `pip install -r requirements.txt`.
