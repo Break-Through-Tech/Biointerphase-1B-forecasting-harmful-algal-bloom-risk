@@ -27,6 +27,8 @@ env/
 /processed/
 /data/processed/
 *.parquet
+# Final modelling tables, committed so the team can train without rerunning the notebooks
+!/data/final/*.parquet
 
 # Local logs and test reports
 *.log
