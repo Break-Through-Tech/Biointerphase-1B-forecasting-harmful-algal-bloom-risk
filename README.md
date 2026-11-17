@@ -8,7 +8,7 @@
 | Laura Williams | @laura-williams-1 | Data collection, exploratory analysis, documentation |
 | Jerica Yuan | — | Data preprocessing, feature engineering, validation |
 | Shreya R | — | Model development |
-| Mohammed C | — | Model evaluation |
+| Mohammed C | mohammedASC21 | Model evaluation |
 
 ## Project Highlights
 
