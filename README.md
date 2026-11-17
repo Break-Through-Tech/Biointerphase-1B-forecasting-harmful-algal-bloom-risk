@@ -36,3 +36,10 @@ The classes are **0: below 5,000**, **1: 5,000–99,999**, and **2: at least 100
 ### Running the notebooks
 
 Run 02, 03 and 05 in order. In Google Colab they read the raw files from `/content/drive/MyDrive/biointerphase_data/` (copy `data/water_atlas_stations.csv` there too). Locally they read [`data/`](data/) and write to `data/processed/` (not tracked by git). Install the packages with `pip install -r requirements.txt`.
+
+### TabFM forecasts
+
+Notebooks [08](notebooks/08_TabFM_Regional_HAB.ipynb) and [09](notebooks/09_TabFM_LightGBM_Ensemble.ipynb) use the final regional table. Run 08 first to generate the TabFM probabilities that 09 combines with LightGBM.
+
+- [TabFM model summary, setup, and results](TabFM_Model_Development_Summary.md)
+- [TabFM and LightGBM ensemble summary and results](TabFM_LightGBM_Ensemble_Development_Summary.md)

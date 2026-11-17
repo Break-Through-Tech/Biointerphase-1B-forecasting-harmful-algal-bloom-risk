@@ -1,0 +1,12 @@
+# Regional forecasting notebooks 08 and 09 (verified on Python 3.11)
+numpy==2.4.4
+pandas==3.0.5
+pyarrow==26.0.1
+scikit-learn==1.9.1
+torch==2.12.0
+tabfm[pytorch]==1.0.1
+huggingface-hub==2.4.0
+safetensors==0.8.0
+lightgbm==4.7.0
+catboost==1.2.10
+ipykernel>=6.29
