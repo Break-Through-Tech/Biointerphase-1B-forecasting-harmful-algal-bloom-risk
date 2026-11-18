@@ -14,6 +14,15 @@ The model predicts next week's *Karenia brevis* severity for the region from Ann
 
 The regional model table has 595 weeks, of which 486 have a next-week label. An unsampled target week has an unknown label and stays out of fitting and evaluation. Notebook 08 uses the same 12 core features as the team's boosting comparison. [Regional modeling table](data/final/README.md) · [Boosting model summary](Regional_HAB_Boosting_Model_Development_Summary.md)
 
+| Dataset split by target year | Labeled weeks | Low | Elevated | Severe |
+|---|---:|---:|---:|---:|
+| 2015–2023 training | 364 | 185 | 59 | 120 |
+| 2024 validation | 52 | 38 | 5 | 9 |
+| 2025 test | 52 | 45 | 1 | 6 |
+| 2026 holdout | 18 | 18 | 0 | 0 |
+
+The phase split describes the dataset. The historical backtests below use smaller training sets where the four-week gap applies. The final 2025 fit uses both the training and validation rows.
+
 | Feature group | Columns |
 |---|---|
 | Last observed bloom state | `last_class`, `last_log_cells`, `weeks_since_obs` |
@@ -29,7 +38,7 @@ Google's pretrained classifier reads the labeled training rows as context and pr
 | Checkpoint | `google/tabfm-1.0.0-pytorch`, classification |
 | Package | `tabfm[pytorch]==1.0.1` |
 | Configuration | Standard classifier with 32 estimators and all training rows as context |
-| Missing values | Add indicators for features with missing values in the training fold |
+| Missing values | Keep missing predictors and add indicators for columns with missing values in that fold's training data |
 | Seed and precision | 42, float32 |
 
 ## 3. Evaluation design
@@ -38,23 +47,56 @@ Google's pretrained classifier reads the labeled training rows as context and pr
 - **Extended backtest, 2017–2024.** Apply the same split rule to 313 labeled weeks with 25 onsets. The 2017–2019 forecasts also supply the first alert threshold.
 - **Final test, 2025.** Fit the context on 416 labeled weeks through 2024 and evaluate on 52 labeled weeks. Keep the 2026 holdout outside this experiment.
 
+The 2024 historical fold uses 363 earlier weeks after the four-week gap. The separate 2024 validation experiment in the boosting summary uses all 364 training weeks. Use the historical results from each summary when comparing models on the same fit and evaluation windows. [Boosting backtests](Regional_HAB_Boosting_Model_Development_Summary.md#16-historical-catboost-backtesting)
+
 An onset is a target week at class 1 or 2 after the last observed class was 0. A severe miss is class 2 called class 0. A false alarm is class 0 called class 1 or 2. The cost scores add the false-alarm count to two or three times the severe-miss count. Notebook 08 also reports macro-F1, balanced accuracy, onset average precision, and log loss.
 
 TabFM predicts the highest-probability class in the default comparison. The alert policy uses `P(class 1) + P(class 2)`. Each year from 2020 onward, it chooses a cutoff on earlier class-0 forecasts to target the false-alarm count of CatBoost at 0.35 on those same earlier weeks. The realized count can change when the cutoff is applied to a new year.
 
+When the risk score reaches the cutoff, the policy reports the more probable of the two elevated classes. Below the cutoff it reports class 0. In 2025, the TabFM cutoff was 0.2383, calculated from forecasts issued for 2017–2024.
+
 ## 4. Model comparison
 
-| Model, 2020–2024 | Onsets caught | Severe misses | False alarms | Macro-F1 |
-|---|---:|---:|---:|---:|
-| Persistence | 0/13 | 2 | 12 | 0.677 |
-| Tuned LightGBM | 2/13 | 2 | 23 | 0.586 |
-| CatBoost warning at 0.35 | 6/13 | 0 | 33 | 0.636 |
-| TabFM, highest-probability class | 0/13 | 4 | 9 | 0.627 |
-| TabFM, threshold set on earlier years | 6/13 | 0 | 33 | 0.617 |
+| Model, 2020–2024 | Onsets caught | Severe misses | False alarms | Cost 2:1 | Cost 3:1 | Macro-F1 | Onset AP |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Persistence | 0/13 | 2 | 12 | 16 | 18 | 0.677 | — |
+| Tuned LightGBM | 2/13 | 2 | 23 | 27 | 29 | 0.586 | 0.141 |
+| Tuned LightGBM, threshold set on earlier years | 6/13 | 0 | 53 | 53 | 53 | 0.518 | 0.141 |
+| CatBoost warning at 0.35 | 6/13 | 0 | 33 | 33 | 33 | 0.636 | 0.205 |
+| TabFM, highest-probability class | 0/13 | 4 | 9 | 17 | 21 | 0.627 | 0.154 |
+| TabFM, threshold set on earlier years | 6/13 | 0 | 33 | 33 | 33 | 0.617 | 0.154 |
 
-In the extended backtest, the default TabFM forecast caught 2 of 25 onsets and produced 20 false alarms. Tuned LightGBM caught 6 and produced 38. On the 2025 test, default TabFM and persistence both had one false alarm, zero severe misses, and macro-F1 of 0.637. The 2025 test had zero onsets, so onset recall is undefined.
+Onset average precision (AP) measures how the risk scores rank new onsets among weeks whose last observed class was 0. Changing the cutoff changes the class decisions while leaving the score ranking the same. TabFM and CatBoost each caught six onsets after thresholding, with four shared catches, but CatBoost ranked onsets higher on this window.
 
-The alert results justify a comparison with CatBoost on future observed onsets. The 13 historical onsets give limited precision, and the published CatBoost cutoff was selected using historical data. The weekly maximum also depends on when and where sampling occurred. Keep tuned LightGBM as the current severity reference and CatBoost as the early warning reference.
+### Historical alert results by year
+
+| Target year | Labeled weeks | TabFM cutoff | TabFM onsets caught | TabFM false alarms | CatBoost onsets caught | CatBoost false alarms |
+|---|---:|---:|---:|---:|---:|---:|
+| 2020 | 52 | 0.2310 | 2/6 | 20 | 1/6 | 13 |
+| 2021 | 27 | 0.2842 | 1/2 | 2 | 2/2 | 2 |
+| 2022 | 8 | 0.2842 | 1/1 | 1 | 1/1 | 1 |
+| 2023 | 17 | 0.2842 | 0/2 | 4 | 0/2 | 7 |
+| 2024 | 52 | 0.2530 | 2/2 | 6 | 2/2 | 10 |
+
+The pooled false-alarm totals hide variation across years. TabFM generated seven more false alarms than CatBoost in 2020 and four fewer in 2024. In the extended 2017–2024 backtest, the default TabFM forecast caught 2 of 25 onsets and produced 20 false alarms. Tuned LightGBM caught 6 and produced 38.
+
+### Final test in 2025
+
+| Model or policy | Accuracy | Balanced accuracy | Macro-F1 | Severe misses | False alarms | Log loss |
+|---|---:|---:|---:|---:|---:|---:|
+| Persistence | 0.962 | 0.659 | 0.637 | 0 | 1 | — |
+| Tuned LightGBM | 0.904 | 0.589 | 0.600 | 0 | 3 | 0.300 |
+| CatBoost warning at 0.35 | 0.904 | 0.637 | 0.626 | 0 | 4 | 0.309 |
+| TabFM, highest-probability class | 0.962 | 0.659 | 0.637 | 0 | 1 | 0.207 |
+| TabFM, threshold set on earlier years | 0.923 | 0.644 | 0.630 | 0 | 3 | 0.207 |
+
+Default TabFM and persistence made identical class decisions. TabFM correctly classified 44 of 45 low weeks and all six severe weeks. It predicted class 2 for the single class-1 week. The 2025 test contained zero onsets, so onset recall and onset AP are undefined.
+
+### Interpretation and limitations
+
+The historical results support keeping TabFM as a standalone candidate alongside the team's LightGBM severity forecast and CatBoost alert policy. The comparison covers only 13 onsets in 2020–2024, and CatBoost's 0.35 cutoff was selected on that historical period. The 2025 test provides evidence about false alarms and severity errors during that year. Comparing early-warning ability requires more observed onsets.
+
+The target is the regional weekly maximum observed cell count, which depends on sampling coverage. The notebooks evaluate this regional target using the agreed core features. Site-level performance and the contribution of additional environmental predictors are outside this experiment.
 
 ## 5. Reproduce and verify the saved forecast
 
